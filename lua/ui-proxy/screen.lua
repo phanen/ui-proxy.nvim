@@ -45,21 +45,16 @@
 -- To help write screen tests, see Screen:snapshot_util().
 -- To debug screen tests, see Screen:redraw_debug().
 
-local t = require('test.testutil')
-local n = require('test.functional.testnvim')()
-local busted = require('busted')
+local t = require('ui-proxy.utils')
 
 local deepcopy = vim.deepcopy
 local shallowcopy = t.shallowcopy
 local concat_tables = t.concat_tables
 local pesc = vim.pesc
-local run_session = n.run_session
+local run_session = t.run_session
 local eq = t.eq
 local dedent = t.dedent
-local get_session = n.get_session
-local create_callindex = n.create_callindex
-
-local inspect = vim.inspect
+local create_callindex = t.create_callindex
 
 local function isempty(v)
   return type(v) == 'table' and next(v) == nil
@@ -102,8 +97,7 @@ end
 
 local default_screen_timeout = default_timeout_factor * 3500
 
-local function _init_colors()
-  local session = get_session()
+local function _init_colors(session)
   local status, rv = session:request('nvim_get_color_map')
   if not status then
     error('failed to get color map')
@@ -172,7 +166,7 @@ end
 --- @return test.functional.ui.screen
 function Screen.new(width, height, options, session)
   if not Screen.colors then
-    _init_colors()
+    _init_colors(session)
   end
 
   options = options or {}
