@@ -9,7 +9,8 @@ local proc = uv_stream.ProcStream.spawn(
     '--cmd',
     'set runtimepath^=' .. uv.cwd(),
     '-l',
-    fs.abspath('lua/ui-proxy/ui.lua'),
+    debug.getinfo(2, 'S') and debug.getinfo(2, 'S').source:sub(2)
+      or fs.abspath('lua/ui-proxy/ui.lua'),
     vim.v.servername,
     api.nvim_list_uis()[1].width,
     api.nvim_list_uis()[1].height,
@@ -31,13 +32,19 @@ local proc = uv_stream.ProcStream.spawn(
 local rpc = rpc_stream.new(proc)
 rpc:read_start(function(...)
   assert(false, 'unreachable: ' .. vim.inspect(...))
+end, function(method_or_error, args_or_result)
   assert(method_or_error == 'proxy')
   local r = args_or_result[1]
   assert(r[1] == 'notification')
   assert(r[2] == 'redraw')
-  r = r[3]
-  local grid_line, hl, flush = unpack(r)
-  vim.print(grid_line)
+  r = r[3][1]
+  -- local grid_line, hl, flush = unpack(r)
+  -- assert(r[1] == 'grid_line')
+  i = (i or 0) + 1
+  vim.print(r)
+  if i == 10 then
+    rpc:read_stop()
+  end
 end, function()
-  print('die')
+  rpc:read_stop()
 end)

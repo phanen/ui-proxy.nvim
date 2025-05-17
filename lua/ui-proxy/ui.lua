@@ -5,9 +5,10 @@ height = height or 24
 local Session = require('ui-proxy.client.session')
 local uv_stream = require('ui-proxy.client.uv_stream')
 local sock_sess = Session.new(uv_stream.SocketStream.open(sock))
+local options = { ext_linegrid = true, ext_termcolors = true }
 if pid then
   sock_sess:request('nvim_set_client_info', 'child', vim.version(), 'remote', {}, {})
-  sock_sess:request('nvim_ui_attach', width, height, { ext_linegrid = true })
+  sock_sess:request('nvim_ui_attach', width, height, options)
   local io_sess = Session.new(uv_stream.StdioStream.open())
   while vim.uv.os_getpriority(pid) do
     io_sess:notify('proxy', sock_sess:next_message())
@@ -16,20 +17,12 @@ if pid then
 end
 
 local Screen = require('ui-proxy.screen')
-local screen = Screen.new(width, height, {
-  ext_linegrid = true,
-  ext_messages = true,
-  ext_multigrid = true,
-  ext_hlstate = true,
-  ext_termcolors = true,
-}, sock_sess)
+local screen = Screen.new(width, height, options, sock_sess)
 screen:expect({
-  grid = [[
-      non ui-watched line |
-      ui-watched lin^e     |
-      {1:~                   }|
-                          |
-    ]],
+  grid = [[ ]],
+  attr_ids = {
+    [123] = { background = tonumber('0x1f2335'), foreground = tonumber('0x3b4261') },
+  },
 })
 
 -- print('stdin', data)

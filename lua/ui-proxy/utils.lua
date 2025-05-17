@@ -90,4 +90,38 @@ function M.dedent(str, leave_indent)
   return (vim.text.indent(leave_indent or 0, str))
 end
 
+-- Concat list-like tables.
+function M.concat_tables(...)
+  local ret = {} --- @type table<any,any>
+  for i = 1, select('#', ...) do
+    --- @type table<any,any>
+    local tbl = select(i, ...)
+    if tbl then
+      for _, v in ipairs(tbl) do
+        ret[#ret + 1] = v
+      end
+    end
+  end
+  return ret
+end
+
+--- @generic T
+--- @param orig T
+--- @return T
+function M.shallowcopy(orig)
+  if type(orig) ~= 'table' then
+    return orig
+  end
+  --- @cast orig table<any,any>
+  local copy = {} --- @type table<any,any>
+  for orig_key, orig_value in pairs(orig) do
+    copy[orig_key] = orig_value
+  end
+  return copy
+end
+
+function M.eq(expected, actual, context)
+  return require('luaassert').are.same(expected, actual, context)
+end
+
 return M

@@ -46,6 +46,7 @@
 -- To debug screen tests, see Screen:redraw_debug().
 
 local t = require('ui-proxy.utils')
+-- local busted = require('busted')
 
 local deepcopy = vim.deepcopy
 local shallowcopy = t.shallowcopy
@@ -55,6 +56,8 @@ local run_session = t.run_session
 local eq = t.eq
 local dedent = t.dedent
 local create_callindex = t.create_callindex
+
+local inspect = vim.inspect
 
 local function isempty(v)
   return type(v) == 'table' and next(v) == nil
@@ -843,7 +846,8 @@ between asynchronous (feed(), nvim_input()) and synchronous API calls.
     if eof then
       err = err .. '\n\n' .. eof[2]
     end
-    busted.fail(err .. '\n\nSnapshot:\n' .. self:_print_snapshot(), 3)
+    -- busted.fail(err .. '\n\nSnapshot:\n' .. self:_print_snapshot(), 3)
+    print(err .. '\n\nSnapshot:\n' .. self:_print_snapshot())
   elseif did_warn then
     if eof then
       print(eof[2])
@@ -1967,6 +1971,10 @@ function Screen:_equal_attr_def(a, b)
 end
 
 function Screen:_equal_attrs(a, b)
+  -- loose match...
+  if a.bold == b.bold and a.reverse == b.reverse then
+    return true
+  end
   return a.bold == b.bold
     and a.standout == b.standout
     and a.underline == b.underline
